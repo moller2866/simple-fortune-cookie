@@ -31,6 +31,7 @@ var datastoreDefault = datastore{m: map[string]fortune{
 	"2": {ID: "2", Message: "The measure of time to your next goal is the measure of your discipline."},
 	"3": {ID: "3", Message: "The only way to do well is to do better each day."},
 	"4": {ID: "4", Message: "It ain't over till it's EOF."},
+	"5": {ID: "5", Message: "Your hard work will soon pay off in ways you never imagined."}, // New cookie
 }, RWMutex: &sync.RWMutex{}}
 
 type fortuneHandler struct {
@@ -178,5 +179,5 @@ func main() {
 	mux.Handle("/fortunes/", fortuneH)
 
 	err := http.ListenAndServe(":9000", mux)
-    fmt.Println("%v", err)
+	fmt.Printf("%v\n", err)
 }
