@@ -179,5 +179,5 @@ func main() {
 	mux.Handle("/fortunes/", fortuneH)
 
 	err := http.ListenAndServe(":9000", mux)
-	fmt.Printf("%v", err)
+	fmt.Printf("%v\n", err)
 }
