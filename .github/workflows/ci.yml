@@ -8,11 +8,6 @@ on:
     branches:
       - main
 
-# Add permissions needed for GitHub Container Registry
-permissions:
-  contents: read
-  packages: write
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -25,6 +20,7 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version: '1.21'
+    
     - name: Build Frontend
       run: |
         cd frontend
@@ -39,28 +35,6 @@ jobs:
       run: |
         cd frontend
         go test ./...
-
-    # Login to GitHub Container Registry
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v2
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Build and Push Frontend Docker Container
-      run: |
-        cd frontend
-        docker build -t frontend:latest .
-        docker tag frontend:latest ghcr.io/${{ github.repository }}/fortune-cookie-frontend:latest
-        docker push ghcr.io/${{ github.repository }}/fortune-cookie-frontend:latest
-
-    - name: Build and Push Backend Docker Container
-      run: |
-        cd backend
-        docker build -t backend:latest .
-        docker tag backend:latest ghcr.io/${{ github.repository }}/fortune-cookie-backend:latest
-        docker push ghcr.io/${{ github.repository }}/fortune-cookie-backend:latest
         
     - name: Show Build Status
-      run: echo "Build, tests, and Docker containers completed successfully!"
+      run: echo "Build and tests completed successfully!"
