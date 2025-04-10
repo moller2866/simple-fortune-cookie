@@ -55,4 +55,4 @@ jobs:
         chmod +x ./deploy.sh
         
         # Run deployment using the kubeconfig and environment
-        ./deploy.sh --kubeconfig $(pwd)kubeconfig --environment ${{ steps.determine-env.outputs.environment }}
+        ./deploy.sh --kubeconfig $(pwd)/kubeconfig --environment ${{ steps.determine-env.outputs.environment }}
