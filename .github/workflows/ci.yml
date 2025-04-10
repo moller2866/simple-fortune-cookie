@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
     - name: Checkout code
@@ -38,3 +38,31 @@ jobs:
         
     - name: Show Build Status
       run: echo "Build and tests completed successfully!"
+
+  functional-tests:
+    runs-on: self-hosted
+    needs: build-and-test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      
+    - name: Configure kubectl
+      run: |
+        if [ -n "${{ secrets.KUBECONFIG }}" ]; then
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
+          chmod 600 kubeconfig
+          export KUBECONFIG=./kubeconfig
+          
+          # Make test script executable
+          chmod +x ./ci/test-deploy.sh
+          
+          # Run functional tests
+          ./ci/test-deploy.sh
+        else
+          echo "No KUBECONFIG provided, skipping functional tests"
+          echo "Please add KUBECONFIG secret to enable functional tests"
+        fi

@@ -1,4 +1,4 @@
-name: Publish Docker Images
+name: Publish Docker Images and Deploy
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build-and-publish:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
     - name: Checkout code
@@ -57,3 +57,19 @@ jobs:
         
     - name: Show Publish Status
       run: echo "Docker containers built and published successfully!"
+    
+    # Set up kubectl for deployment
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      
+    # Configure kubectl with KUBECONFIG from secrets
+    - name: Configure kubectl and deploy
+      run: |
+        echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
+        chmod 600 kubeconfig
+        
+        # Make deploy script executable
+        chmod +x ./deploy.sh
+        
+        # Run deployment using the kubeconfig
+        ./deploy.sh --kubeconfig kubeconfig --environment production
