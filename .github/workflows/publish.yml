@@ -72,4 +72,4 @@ jobs:
         chmod +x ./deploy.sh
         
         # Run deployment using the kubeconfig
-        ./deploy.sh --kubeconfig kubeconfig --environment production
+        ./deploy.sh --kubeconfig $(pwd)kubeconfig --environment production
