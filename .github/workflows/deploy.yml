@@ -1,0 +1,58 @@
+name: Deploy to Environment
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'develop'
+      - 'staging'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+        - development
+        - staging
+        - production
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      
+    - name: Determine environment
+      id: determine-env
+      run: |
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+          echo "environment=staging" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+          echo "environment=development" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.ref }}" == refs/heads/feature/* ]]; then
+          # Extract feature name from branch
+          FEATURE=$(echo "${{ github.ref }}" | sed 's|refs/heads/feature/||')
+          echo "environment=feature-$FEATURE" >> $GITHUB_OUTPUT
+        else
+          echo "environment=development" >> $GITHUB_OUTPUT
+        fi
+      
+    - name: Configure kubectl and deploy
+      run: |
+        echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
+        chmod 600 kubeconfig
+        
+        # Make deploy script executable
+        chmod +x ./deploy.sh
+        
+        # Run deployment using the kubeconfig and environment
+        ./deploy.sh --kubeconfig kubeconfig --environment ${{ steps.determine-env.outputs.environment }}

@@ -14,6 +14,7 @@ var (
 	getFortuneRe    = regexp.MustCompile(`^/fortunes[/](\d+)$`)
 	randomFortuneRe = regexp.MustCompile(`^/fortunes[/]random$`)
 	createFortuneRe = regexp.MustCompile(`^/fortunes[/]*$`)
+	healthzRe       = regexp.MustCompile(`^/healthz$`)
 )
 
 type fortune struct {
@@ -52,6 +53,9 @@ func (h *fortuneHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.Method == http.MethodPost && createFortuneRe.MatchString(r.URL.Path):
 		h.Create(w, r)
+		return
+	case r.Method == http.MethodGet && healthzRe.MatchString(r.URL.Path):
+		HealthzHandler(w, r)
 		return
 	default:
 		notFound(w, r)
@@ -160,6 +164,12 @@ func (h *fortuneHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonBytes)
 }
 
+func HealthzHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status":"healthy"}`))
+}
+
 func internalServerError(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Write([]byte("internal server error"))
@@ -177,6 +187,7 @@ func main() {
 	}
 	mux.Handle("/fortunes", fortuneH)
 	mux.Handle("/fortunes/", fortuneH)
+	mux.HandleFunc("/healthz", HealthzHandler)
 
 	err := http.ListenAndServe(":9000", mux)
 	fmt.Printf("%v\n", err)
