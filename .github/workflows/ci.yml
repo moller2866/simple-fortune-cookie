@@ -19,14 +19,44 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.21
+        go-version: '1.21'
 
-    - name: Build
+    - name: Build Frontend
       run: |
         cd frontend
         go build
 
-    - name: Run tests
+    - name: Build Backend
+      run: |
+        cd backend
+        go build
+
+    - name: Run Frontend Tests
       run: |
         cd frontend
         go test ./...
+
+    # Login to GitHub Container Registry
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and Push Frontend Docker Container
+      run: |
+        cd frontend
+        docker build -t fortune-cookie-frontend:latest .
+        docker tag fortune-cookie-frontend:latest ghcr.io/${{ github.repository_owner }}/fortune-cookie-frontend:latest
+        docker push ghcr.io/${{ github.repository_owner }}/fortune-cookie-frontend:latest
+
+    - name: Build and Push Backend Docker Container
+      run: |
+        cd backend
+        docker build -t fortune-cookie-backend:latest .
+        docker tag fortune-cookie-backend:latest ghcr.io/${{ github.repository_owner }}/fortune-cookie-backend:latest
+        docker push ghcr.io/${{ github.repository_owner }}/fortune-cookie-backend:latest
+        
+    - name: Show Build Status
+      run: echo "Build, tests, and Docker containers completed successfully!"
