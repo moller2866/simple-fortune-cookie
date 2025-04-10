@@ -19,14 +19,22 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.21
-
-    - name: Build
+        go-version: '1.21'
+    
+    - name: Build Frontend
       run: |
         cd frontend
         go build
 
-    - name: Run tests
+    - name: Build Backend
+      run: |
+        cd backend
+        go build
+
+    - name: Run Frontend Tests
       run: |
         cd frontend
         go test ./...
+        
+    - name: Show Build Status
+      run: echo "Build and tests completed successfully!"
